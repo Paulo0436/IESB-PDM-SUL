@@ -1,24 +1,26 @@
 import { StyleSheet, Text, TextInput, View, Button } from 'react-native';
 import { rotulo_input_meta, rotulo_btn_cadastro_meta, rotulo_lista_metas } from './mensagem';
+import { useState } from 'react';
+import MetasList from './components/metasList';
+import MetaInput from './components/MetaInput';
 
 export default function App() {
+  const [metas, setMetas] = useState([]);
+
+
+
+
+
+  function adicionarMetaHandler() {
+    setMetas([...metas, inputMetaText]);
+  }
+
+
   return (
     <View style={styles.mainContainer}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
-        <View style={{ width: '65%' }}>
-          <TextInput
-            style={styles.inputText}
-            placeholder={rotulo_input_meta}
-          />
-        </View>
-
-        <View style={{ width: '30%' }}>
-          <Button title={rotulo_btn_cadastro_meta} />
-        </View>
-      </View>
-
+        <MetaInput onAddMeta = {adicionarMetaHandler}/>
       <View style={styles.metaContainer}>
-        <Text>{rotulo_lista_metas}</Text>
+        <MetasList array={metas} />
       </View>
     </View>
   );
@@ -36,12 +38,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
 
-  inputText: {
-    borderColor: '#cccccc',
-    borderWidth: 1,
-  },
 
   metaContainer: {
-    flex: 1,
+    flex: 15,
   },
+
+
 });
