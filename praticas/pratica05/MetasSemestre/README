@@ -1,0 +1,563 @@
+## Criação do projeto
+
+O projeto foi criado utilizando o seguinte comando:
+
+```bash
+npx create-expo-app@latest MetasSemestre --template blank
+```
+
+O `create-expo-app` é utilizado para criar um novo projeto React Native utilizando o Expo.
+
+O parâmetro `--template blank` cria um projeto inicial simples, sem funcionalidades adicionais.
+
+---
+
+## Instalação das dependências
+
+Foi utilizado o seguinte comando:
+
+```bash
+npx expo install @react-native-async-storage/async-storage react-native-safe-area-context
+```
+
+O comando `npx expo install` é utilizado para instalar bibliotecas de forma compatível com a versão do Expo utilizada no projeto.
+
+### AsyncStorage
+
+O `AsyncStorage` é utilizado para armazenar informações localmente no dispositivo.
+
+Neste projeto ele é utilizado para salvar as metas cadastradas. Dessa forma, as informações continuam disponíveis mesmo depois que o aplicativo é fechado e aberto novamente.
+
+### React Native Safe Area Context
+
+O `react-native-safe-area-context` é utilizado para trabalhar com a área segura da tela.
+
+Foram utilizados:
+
+- `SafeAreaProvider`
+- `SafeAreaView`
+
+Essa biblioteca evita que os elementos da interface fiquem escondidos atrás de áreas do sistema, como a barra de status ou o recorte da câmera.
+
+---
+
+## Estrutura do projeto
+
+```text
+MetasSemestre/
+│
+├── assets/
+│   └── icon.png
+│
+├── components/
+│   ├── MetaInput.js
+│   └── MetaList.js
+│
+├── App.js
+├── package.json
+└── README.md
+```
+
+---
+
+## Componentização
+
+A aplicação foi dividida em componentes para deixar o código mais organizado.
+
+### MetaInput.js
+
+O componente `MetaInput` é responsável pelo campo de texto e pelo botão de adicionar uma nova meta.
+
+Ele recebe informações através de `props`:
+
+```javascript
+value
+onChangeText
+onAdd
+```
+
+Isso permite que o componente receba o valor do campo, a função responsável por alterar o texto e a função responsável por adicionar uma nova meta.
+
+### MetaList.js
+
+O componente `MetaList` é responsável pela exibição da lista de metas.
+
+Ele recebe:
+
+```javascript
+metas
+onDelete
+onToggleConcluida
+```
+
+O componente utiliza `FlatList` para apresentar as metas e possui ações para excluir e marcar as metas como concluídas.
+
+---
+
+## useState
+
+O `useState` é um Hook do React utilizado para criar e controlar estados dentro dos componentes.
+
+Neste projeto foram utilizados estados para controlar o texto digitado e o array de metas.
+
+Exemplo:
+
+```javascript
+const [texto, setTexto] = useState('');
+const [metas, setMetas] = useState([]);
+```
+
+O estado `texto` armazena o conteúdo digitado pelo usuário.
+
+O estado `metas` armazena todas as metas cadastradas.
+
+Quando esses valores são alterados utilizando suas respectivas funções, o React atualiza a interface automaticamente.
+
+---
+
+## Estrutura de uma meta
+
+Cada meta é armazenada como um objeto:
+
+```javascript
+{
+  id: 'id-unico',
+  texto: 'Estudar Banco de Dados',
+  criadaEm: 'data-da-criacao',
+  concluida: false
+}
+```
+
+### id
+
+Identifica cada meta de maneira única.
+
+Foi utilizado:
+
+```javascript
+Date.now().toString()
+```
+
+para gerar o identificador.
+
+### texto
+
+Armazena o texto informado pelo usuário.
+
+### criadaEm
+
+Armazena a data e hora em que a meta foi criada.
+
+### concluida
+
+Indica se a meta está pendente ou concluída.
+
+---
+
+## Props
+
+`Props` são propriedades utilizadas para passar informações e funções de um componente para outro.
+
+No `App.js`, o componente `MetaInput` recebe:
+
+```javascript
+<MetaInput
+  value={texto}
+  onChangeText={setTexto}
+  onAdd={adicionarMeta}
+/>
+```
+
+O componente `MetaList` recebe:
+
+```javascript
+<MetaList
+  metas={metas}
+  onDelete={removerMeta}
+  onToggleConcluida={alternarConclusao}
+/>
+```
+
+Essa abordagem permite separar as responsabilidades de cada componente e manter o código organizado.
+
+---
+
+## Pressable
+
+O `Pressable` é um componente do React Native utilizado para criar elementos que respondem ao toque do usuário.
+
+Neste projeto ele foi utilizado nos botões de:
+
+- Adicionar;
+- Excluir;
+- Marcar uma meta como concluída.
+
+Também foi utilizado um estilo para fornecer feedback visual enquanto o botão está sendo pressionado.
+
+Exemplo:
+
+```javascript
+style={({ pressed }) => [
+  styles.botao,
+  pressed && styles.botaoPressionado,
+]}
+```
+
+Quando `pressed` possui o valor `true`, o estilo de pressionado é aplicado.
+
+---
+
+## android_ripple
+
+O `android_ripple` fornece um efeito visual de toque específico para o Android.
+
+Exemplo:
+
+```javascript
+android_ripple={{ color: '#ffffff55' }}
+```
+
+Esse recurso melhora o feedback visual para o usuário ao tocar nos elementos da aplicação.
+
+---
+
+## Alert
+
+O `Alert` é utilizado para apresentar mensagens ao usuário.
+
+Neste projeto ele é utilizado para impedir o cadastro de uma meta vazia.
+
+Exemplo:
+
+```javascript
+if (!texto.trim()) {
+  Alert.alert(
+    'Atenção',
+    'Digite uma meta antes de adicionar.'
+  );
+
+  return;
+}
+```
+
+O método `trim()` remove os espaços do início e do final do texto.
+
+Assim, uma entrada contendo somente espaços também é considerada inválida.
+
+---
+
+## useEffect
+
+O `useEffect` é um Hook do React utilizado para executar efeitos colaterais.
+
+Neste projeto ele é utilizado principalmente para trabalhar com a persistência das metas.
+
+### Carregamento
+
+Quando o aplicativo é iniciado, um `useEffect` executa a função responsável por carregar as metas armazenadas:
+
+```javascript
+useEffect(() => {
+  carregarMetas();
+}, []);
+```
+
+O array vazio indica que esse efeito deve ser executado durante a montagem inicial do componente.
+
+### Salvamento
+
+Outro `useEffect` observa o estado das metas:
+
+```javascript
+useEffect(() => {
+  salvarMetas();
+}, [metas]);
+```
+
+Sempre que o array `metas` é alterado, o efeito é executado novamente e os dados são salvos.
+
+---
+
+## AsyncStorage
+
+O `AsyncStorage` é responsável pela persistência local das metas.
+
+Foi definida uma chave para armazenar os dados:
+
+```javascript
+const CHAVE_STORAGE = '@metas_semestre';
+```
+
+Para buscar os dados armazenados é utilizado:
+
+```javascript
+AsyncStorage.getItem(CHAVE_STORAGE);
+```
+
+Para salvar os dados:
+
+```javascript
+AsyncStorage.setItem(CHAVE_STORAGE, dados);
+```
+
+Dessa forma, as metas permanecem armazenadas mesmo após fechar e abrir novamente o aplicativo.
+
+---
+
+## JSON.stringify
+
+O `JSON.stringify()` transforma um objeto ou array JavaScript em uma string JSON.
+
+Exemplo:
+
+```javascript
+const dados = JSON.stringify(metas);
+```
+
+Esse processo é necessário porque o `AsyncStorage` trabalha com dados armazenados como texto.
+
+---
+
+## JSON.parse
+
+O `JSON.parse()` realiza o processo inverso do `JSON.stringify()`.
+
+Ele transforma uma string JSON novamente em um objeto ou array JavaScript.
+
+Exemplo:
+
+```javascript
+const metasSalvas = JSON.parse(dados);
+```
+
+O processo de persistência funciona da seguinte maneira:
+
+```text
+Array de metas
+      ↓
+JSON.stringify()
+      ↓
+AsyncStorage
+      ↓
+JSON.parse()
+      ↓
+Array de metas
+```
+
+---
+
+## try/catch
+
+O `try/catch` foi utilizado para tratar possíveis erros durante as operações do `AsyncStorage`.
+
+Exemplo:
+
+```javascript
+try {
+  // operação
+} catch (error) {
+  Alert.alert(
+    'Erro',
+    'Não foi possível carregar suas metas.'
+  );
+}
+```
+
+Caso aconteça algum problema durante o carregamento ou salvamento, o aplicativo apresenta uma mensagem amigável ao usuário.
+
+---
+
+## filter()
+
+O método `filter()` foi utilizado para remover uma meta da lista.
+
+Exemplo:
+
+```javascript
+setMetas((metasAtuais) =>
+  metasAtuais.filter((meta) => meta.id !== id)
+);
+```
+
+O `filter()` cria um novo array contendo apenas as metas que não possuem o ID selecionado.
+
+Dessa forma, o array original não é alterado diretamente.
+
+---
+
+## FlatList
+
+A `FlatList` é um componente do React Native utilizado para exibir listas.
+
+Ela foi utilizada para apresentar as metas cadastradas.
+
+Exemplo:
+
+```javascript
+<FlatList
+  data={metas}
+  keyExtractor={(item) => item.id}
+  renderItem={renderMeta}
+/>
+```
+
+O `keyExtractor` utiliza o `id` único de cada meta.
+
+A `FlatList` foi escolhida por ser mais adequada para listas do que utilizar um `ScrollView` com vários componentes.
+
+---
+
+## SafeAreaProvider e SafeAreaView
+
+O projeto utiliza:
+
+```javascript
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+} from 'react-native-safe-area-context';
+```
+
+O `SafeAreaProvider` fornece o contexto necessário para trabalhar com as áreas seguras do dispositivo.
+
+O `SafeAreaView` mantém os elementos da interface dentro da área segura da tela.
+
+Não foi utilizado o `SafeAreaView` antigo de:
+
+```javascript
+react-native
+```
+
+---
+
+## Image
+
+O componente `Image` foi utilizado para apresentar uma imagem local no cabeçalho do aplicativo.
+
+Exemplo:
+
+```javascript
+<Image
+  source={require('./assets/icon.png')}
+  style={styles.logo}
+/>
+```
+
+A imagem utilizada está localizada na pasta `assets`.
+
+---
+
+## StyleSheet
+
+O `StyleSheet.create()` foi utilizado para organizar os estilos da aplicação.
+
+Exemplo:
+
+```javascript
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+});
+```
+
+A utilização do `StyleSheet` facilita a organização e manutenção dos estilos.
+
+---
+
+## Flexbox
+
+O Flexbox foi utilizado para organizar os elementos da interface.
+
+Exemplo:
+
+```javascript
+flexDirection: 'row'
+```
+
+é utilizado para colocar elementos lado a lado.
+
+Também foi utilizado:
+
+```javascript
+flex: 1
+```
+
+para permitir que os componentes ocupem o espaço disponível.
+
+---
+
+## Metas concluídas
+
+Como funcionalidade adicional, foi implementada a possibilidade de marcar uma meta como concluída.
+
+Cada meta possui a propriedade:
+
+```javascript
+concluida: false
+```
+
+Ao tocar na meta, seu estado é alterado.
+
+Quando uma meta está concluída, o texto recebe o estilo:
+
+```javascript
+textDecorationLine: 'line-through'
+```
+
+fazendo com que o texto apareça riscado.
+
+---
+
+## Contador
+
+Também foi implementado um contador no cabeçalho mostrando a quantidade de metas pendentes e concluídas.
+
+Exemplo:
+
+```text
+2 pendentes / 1 concluída
+```
+
+O contador é atualizado automaticamente conforme as metas são adicionadas, removidas ou concluídas.
+
+---
+
+## Comandos utilizados
+
+### Criar o projeto
+
+```bash
+npx create-expo-app@latest MetasSemestre --template blank
+```
+
+### Entrar na pasta do projeto
+
+```bash
+cd MetasSemestre
+```
+
+### Instalar as dependências
+
+```bash
+npx expo install @react-native-async-storage/async-storage react-native-safe-area-context
+```
+
+### Iniciar o projeto
+
+```bash
+npx expo start
+```
+
+---
+
+## Conclusão
+
+A atividade possibilitou aplicar conceitos fundamentais do desenvolvimento de aplicativos utilizando React Native e Expo.
+
+Foram utilizados `useState` para gerenciamento de estado, `props` para comunicação entre componentes, componentização para organização do código, `Pressable` para interação com o usuário, `useEffect` para executar ações relacionadas ao ciclo de vida do aplicativo e `AsyncStorage` para persistência local dos dados.
+
+Também foram utilizados `FlatList`, `Alert`, `Image`, `SafeAreaProvider`, `SafeAreaView`, `StyleSheet`, `JSON.stringify()`, `JSON.parse()` e `filter()`.
+
+Como funcionalidades adicionais, foram implementadas a marcação de metas como concluídas e o contador de metas pendentes e concluídas.
