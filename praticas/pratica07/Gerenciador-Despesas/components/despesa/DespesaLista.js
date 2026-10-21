@@ -1,19 +1,40 @@
 
-import { FlatList, Text, StyleSheet } from 'react-native';
+import { FlatList, View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import DespesaItem from './DespesaItem';
+import DespesaSumario from './DespesaSumario';
 
-export default function DespesaLista({ despesas }) {
+export default function DespesaLista({ expenses, periodo, theme }) {
   return (
     <FlatList
-      data={despesas}
-      keyExtractor={(item) => item.id}
+      data={expenses}
+      keyExtractor={(item) => String(item.id)}
       renderItem={({ item }) => (
-        <DespesaItem despesa={item} />
+        <DespesaItem expense={item} />
       )}
+      ListHeaderComponent={
+        <DespesaSumario
+          expenses={expenses}
+          periodo={periodo}
+          theme={theme}
+        />
+      }
       ListEmptyComponent={
-        <Text style={styles.vazio}>
-          Nenhuma despesa encontrada.
-        </Text>
+        <View style={styles.vazio}>
+          <Ionicons
+            name="receipt-outline"
+            size={55}
+            color={theme.secondary}
+          />
+
+          <Text style={[styles.titulo, { color: theme.text }]}>
+            Nenhuma despesa encontrada
+          </Text>
+
+          <Text style={{ color: theme.secondary, textAlign: 'center' }}>
+            Toque em + para adicionar uma despesa.
+          </Text>
+        </View>
       }
       contentContainerStyle={styles.lista}
     />
@@ -22,12 +43,19 @@ export default function DespesaLista({ despesas }) {
 
 const styles = StyleSheet.create({
   lista: {
-    padding: 12,
     flexGrow: 1,
+    paddingBottom: 20,
   },
   vazio: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+    gap: 12,
+  },
+  titulo: {
+    fontSize: 17,
+    fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 30,
-    color: '#666666',
   },
 });

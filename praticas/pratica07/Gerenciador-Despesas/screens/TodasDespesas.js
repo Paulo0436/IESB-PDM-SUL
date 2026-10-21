@@ -1,65 +1,101 @@
 
-import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useColorScheme,
+} from 'react-native';
+import { useExpenses } from '../store/expenses-context';
+import { themes, CATEGORIES } from '../constants/theme';
+import useDebounce from '../hooks/useDebounce';
 import DespesaSaida from '../components/despesa/DespesaSaida';
 
-const CATEGORIAS = [
-  'Todas',
-  'Alimentação',
-  'Transporte',
-  'Lazer',
-  'Contas',
-];
+export default function TodasDespesas() {
+  const { expenses } = useExpenses();
+  const scheme = useColorScheme();
+  const theme = themes[scheme === 'dark' ? 'dark' : 'light'];
 
-export default function TodasDespesas({ despesas }) {
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState('Todas');
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('Todas');
 
-  const despesasFiltradas = despesas.filter((despesa) => {
-    return (
-      categoriaSelecionada === 'Todas' ||
-      despesa.categoria === categoriaSelecionada
-    );
-  });
+  const debouncedSearch = useDebounce(search);
+
+  const filteredExpenses = useMemo(() => {
+    const query = debouncedSearch.trim().toLowerCase();
+
+    return expenses.filter((expense) => {
+      const matchesSearch = expense.description
+        .toLowerCase()
+        .includes(query);
+
+      const matchesCategory =
+        category === 'Todas' || expense.category === category;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [expenses, debouncedSearch, category]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Filtrar por categoria</Text>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.background },
+      ]}
+    >
+      <TextInput
+        placeholder="Buscar por descrição..."
+        placeholderTextColor={theme.secondary}
+        value={search}
+        onChangeText={setSearch}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.input,
+            borderColor: theme.border,
+            color: theme.text,
+          },
+        ]}
+      />
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.filtros}
       >
-        {CATEGORIAS.map((categoria) => (
+        {['Todas', ...CATEGORIES].map((item) => (
           <Pressable
-            key={categoria}
-            onPress={() => setCategoriaSelecionada(categoria)}
+            key={item}
+            onPress={() => setCategory(item)}
             style={[
               styles.botaoCategoria,
-              categoriaSelecionada === categoria &&
-                styles.botaoSelecionado,
+              {
+                backgroundColor:
+                  category === item ? theme.primary : theme.card,
+              },
             ]}
           >
             <Text
-              style={[
-                styles.textoCategoria,
-                categoriaSelecionada === categoria &&
-                  styles.textoSelecionado,
-              ]}
+              style={{
+                color:
+                  category === item
+                    ? scheme === 'dark' ? '#111827' : '#ffffff'
+                    : theme.text,
+              }}
             >
-              {categoria}
+              {item}
             </Text>
           </Pressable>
         ))}
       </ScrollView>
 
       <DespesaSaida
-        despesas={despesasFiltradas}
-        periodo={
-          categoriaSelecionada === 'Todas'
-            ? 'Todas as despesas'
-            : categoriaSelecionada
-        }
+        expenses={filteredExpenses}
+        periodo="Todas as despesas"
+        theme={theme}
       />
     </View>
   );
@@ -68,33 +104,22 @@ export default function TodasDespesas({ despesas }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
-  titulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginHorizontal: 12,
-    marginTop: 12,
+  input: {
+    margin: 12,
+    padding: 13,
+    borderWidth: 1,
+    borderRadius: 8,
   },
   filtros: {
     flexGrow: 0,
     maxHeight: 55,
   },
   botaoCategoria: {
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    margin: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginHorizontal: 5,
     borderRadius: 20,
-    backgroundColor: '#e5e7eb',
-  },
-  botaoSelecionado: {
-    backgroundColor: '#2563eb',
-  },
-  textoCategoria: {
-    color: '#111827',
-  },
-  textoSelecionado: {
-    color: '#ffffff',
-    fontWeight: 'bold',
+    alignSelf: 'center',
   },
 });

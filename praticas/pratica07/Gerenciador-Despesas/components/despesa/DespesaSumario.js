@@ -1,23 +1,23 @@
 
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function DespesaSumario({ despesas, periodo }) {
-  const somaDespesas = despesas.reduce(
-    (acumulador, item) => acumulador + Number(item.valor),
+export default function DespesaSumario({ expenses, periodo, theme }) {
+  const total = expenses.reduce(
+    (soma, expense) => soma + Number(expense.amount),
     0
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.periodo}>{periodo}</Text>
+    <View style={[styles.container, { backgroundColor: theme.summary }]}>
+      <View>
+        <Text style={styles.periodo}>{periodo}</Text>
+        <Text style={styles.quantidade}>
+          {expenses.length} despesa(s)
+        </Text>
+      </View>
 
-      <Text
-        style={[
-          styles.valor,
-          somaDespesas > 200 && styles.valorAlerta,
-        ]}
-      >
-        R$ {somaDespesas.toFixed(2)}
+      <Text style={styles.valor}>
+        R$ {total.toFixed(2)}
       </Text>
     </View>
   );
@@ -25,9 +25,8 @@ export default function DespesaSumario({ despesas, periodo }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1f2937',
-    padding: 18,
     margin: 12,
+    padding: 18,
     borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -35,14 +34,16 @@ const styles = StyleSheet.create({
   },
   periodo: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  quantidade: {
+    color: '#d1d5db',
+    marginTop: 4,
   },
   valor: {
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  valorAlerta: {
-    color: '#ff5252',
   },
 });

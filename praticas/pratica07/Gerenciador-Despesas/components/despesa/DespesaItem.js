@@ -1,48 +1,79 @@
 
-import { View, Text, StyleSheet } from 'react-native';
+import {
+  Pressable,
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  useColorScheme,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { themes } from '../../constants/theme';
 
-function getDataFormatada(data) {
-  const dataDespesa = new Date(data);
+export default function DespesaItem({ expense }) {
+  const navigation = useNavigation();
+  const scheme = useColorScheme();
+  const theme = themes[scheme === 'dark' ? 'dark' : 'light'];
+
+  function abrirEdicao() {
+    navigation.navigate('GerenciarDespesa', {
+      expenseId: expense.id,
+    });
+  }
 
   return (
-    dataDespesa.getDate() +
-    '/' +
-    (dataDespesa.getMonth() + 1) +
-    '/' +
-    dataDespesa.getFullYear()
-  );
-}
-
-export default function DespesaItem({ despesa }) {
-  return (
-    <View style={styles.container}>
+    <Pressable
+      onPress={abrirEdicao}
+      style={({ pressed }) => [
+        styles.container,
+        { backgroundColor: theme.card },
+        pressed && { opacity: 0.6 },
+      ]}
+    >
       <View style={styles.informacoes}>
-        <Text style={styles.descricao}>{despesa.descricao}</Text>
-        <Text style={styles.data}>
-          {getDataFormatada(despesa.data)}
+        <Text style={[styles.descricao, { color: theme.text }]}>
+          {expense.description}
         </Text>
-        <Text style={styles.categoria}>
-          {despesa.categoria}
+
+        <Text style={{ color: theme.secondary }}>
+          {new Date(expense.date).toLocaleDateString('pt-BR')}
         </Text>
+
+        <View style={[styles.categoria, { backgroundColor: theme.input }]}>
+          <Text style={{ color: theme.text }}>
+            {expense.category}
+          </Text>
+        </View>
       </View>
 
-      <Text style={styles.valor}>
-        R$ {Number(despesa.valor).toFixed(2)}
+      <Text style={[styles.valor, { color: theme.text }]}>
+        R$ {Number(expense.amount).toFixed(2)}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
-    padding: 14,
-    marginVertical: 5,
-    borderRadius: 8,
+    padding: 16,
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 10,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    elevation: 2,
+    justifyContent: 'space-between',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOpacity: 0.15,
+        shadowOffset: { width: 0, height: 3 },
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 4,
+      },
+      default: {},
+    }),
   },
   informacoes: {
     flex: 1,
@@ -52,17 +83,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  data: {
-    color: '#666666',
-    fontSize: 13,
-  },
   categoria: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e5e7eb',
     borderRadius: 12,
     paddingHorizontal: 9,
     paddingVertical: 4,
-    fontSize: 12,
   },
   valor: {
     fontSize: 15,

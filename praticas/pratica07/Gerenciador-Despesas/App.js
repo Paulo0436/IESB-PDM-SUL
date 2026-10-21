@@ -1,30 +1,57 @@
 
-import { useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { useColorScheme } from 'react-native';
+
+import {
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+} from '@react-navigation/native';
+
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
+import { ExpensesContextProvider } from './store/expenses-context';
+import { themes } from './constants/theme';
+
 import DespesasRecentes from './screens/DespesasRecentes';
 import TodasDespesas from './screens/TodasDespesas';
 import GerenciarDespesa from './screens/GerenciarDespesa';
+
 import IconButton from './components/IconButton';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function BottomTabScreen({ despesas }) {
+function BottomTabScreen() {
+  const scheme = useColorScheme();
+  const theme = themes[scheme === 'dark' ? 'dark' : 'light'];
+
   return (
     <Tab.Navigator
       screenOptions={({ navigation }) => ({
         tabBarLabelStyle: {
           fontSize: 12,
         },
+
+        headerStyle: {
+          backgroundColor: theme.card,
+        },
+
+        headerTintColor: theme.text,
+
+        tabBarStyle: {
+          backgroundColor: theme.card,
+        },
+
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.secondary,
+
         headerRight: () => (
           <IconButton
             icon="add-circle"
             size={28}
-            color="#2563eb"
+            color={theme.primary}
             onPress={() =>
               navigation.getParent()?.navigate('GerenciarDespesa')
             }
@@ -34,91 +61,86 @@ function BottomTabScreen({ despesas }) {
     >
       <Tab.Screen
         name="DespesasRecentes"
+        component={DespesasRecentes}
         options={{
           title: 'Despesas Recentes',
           tabBarLabel: 'Recentes',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="hourglass" size={size} color={color} />
+            <Ionicons
+              name="hourglass"
+              size={size}
+              color={color}
+            />
           ),
         }}
-      >
-        {() => <DespesasRecentes despesas={despesas} />}
-      </Tab.Screen>
+      />
 
       <Tab.Screen
         name="TodasDespesas"
+        component={TodasDespesas}
         options={{
           title: 'Todas as Despesas',
           tabBarLabel: 'Todas',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="wallet-outline" size={size} color={color} />
+            <Ionicons
+              name="wallet-outline"
+              size={size}
+              color={color}
+            />
           ),
         }}
-      >
-        {() => <TodasDespesas despesas={despesas} />}
-      </Tab.Screen>
+      />
     </Tab.Navigator>
   );
 }
 
 export default function App() {
-  const [despesas, setDespesas] = useState([
-    {
-      id: '1',
-      descricao: 'Almoço',
-      valor: 35.50,
-      data: new Date(),
-      categoria: 'Alimentação',
-    },
-    {
-      id: '2',
-      descricao: 'Ônibus',
-      valor: 12.00,
-      data: new Date(),
-      categoria: 'Transporte',
-    },
-    {
-      id: '3',
-      descricao: 'Cinema',
-      valor: 45.00,
-      data: new Date(),
-      categoria: 'Lazer',
-    },
-    {
-      id: '4',
-      descricao: 'Internet',
-      valor: 99.90,
-      data: new Date(),
-      categoria: 'Contas',
-    },
-  ]);
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
 
-  function adicionarDespesa(novaDespesa) {
-    setDespesas((listaAtual) => [novaDespesa, ...listaAtual]);
-  }
+  const theme = themes[isDark ? 'dark' : 'light'];
+  const baseTheme = isDark ? DarkTheme : DefaultTheme;
+
+  const navigationTheme = {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      background: theme.background,
+      card: theme.card,
+      text: theme.text,
+      primary: theme.primary,
+      border: theme.border,
+    },
+  };
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Despesas"
-          options={{ headerShown: false }}
+    <ExpensesContextProvider>
+      <NavigationContainer theme={navigationTheme}>
+        <Stack.Navigator
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: theme.card,
+            },
+            headerTintColor: theme.text,
+          }}
         >
-          {() => <BottomTabScreen despesas={despesas} />}
-        </Stack.Screen>
+          <Stack.Screen
+            name="Despesas"
+            component={BottomTabScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
 
-        <Stack.Screen
-          name="GerenciarDespesa"
-          options={{ title: 'Gerenciar Despesa' }}
-        >
-          {(props) => (
-            <GerenciarDespesa
-              {...props}
-              onSalvar={adicionarDespesa}
-            />
-          )}
-        </Stack.Screen>
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen
+            name="GerenciarDespesa"
+            component={GerenciarDespesa}
+            options={{
+              title: 'Nova despesa',
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ExpensesContextProvider>
   );
 }

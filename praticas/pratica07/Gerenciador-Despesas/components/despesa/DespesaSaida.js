@@ -1,23 +1,15 @@
 
-import { View, StyleSheet } from 'react-native';
-import DespesaSumario from './DespesaSumario';
+import { View } from 'react-native';
 import DespesaLista from './DespesaLista';
 
-export default function DespesaSaida({ despesas, periodo }) {
+export default function DespesaSaida({ expenses, periodo, theme }) {
   return (
-    <View style={styles.container}>
-      <DespesaSumario
-        despesas={despesas}
+    <View style={{ flex: 1 }}>
+      <DespesaLista
+        expenses={expenses}
         periodo={periodo}
+        theme={theme}
       />
-
-      <DespesaLista despesas={despesas} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
